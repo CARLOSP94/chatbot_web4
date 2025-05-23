@@ -23,6 +23,7 @@
       display: flex;
       flex-direction: column;
       box-sizing: border-box;
+      position: relative;
     }
     .logo {
       display: block;
@@ -50,6 +51,8 @@
       box-sizing: border-box;
       font-size: 0.95rem;
       line-height: 1.4;
+      display: flex;
+      flex-direction: column;
     }
     .user-msg, .bot-msg {
       margin: 10px 0;
@@ -105,6 +108,30 @@
     button:hover {
       background-color: #03506f;
     }
+    #clear-chat-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background-color: #f44336;
+      border-radius: 20px;
+      padding: 6px 12px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.25s ease;
+    }
+    #clear-chat-btn:hover {
+      background-color: #d32f2f;
+    }
+    #typing-indicator {
+      font-style: italic;
+      opacity: 0.7;
+      margin: 8px 0;
+      color: #555;
+      align-self: flex-start;
+    }
   </style>
 </head>
 <body>
@@ -112,7 +139,13 @@
     <!-- Aquí cambia la ruta al logo que tengas -->
     <img src="static/logo1.png" alt="Logo Persol Ambiental" class="logo" />
     <h1>Chatbot Ambiental Persol</h1>
-    <div id="chat-box"></div>
+
+    <button id="clear-chat-btn" title="Limpiar chat">Limpiar chat</button>
+
+    <div id="chat-box">
+      <div class="bot-msg">Hola 👋 Soy el Chatbot Ambiental Persol. Puedes preguntarme sobre normativas, capacitaciones o gestión ambiental.</div>
+    </div>
+
     <form id="chat-form">
       <input type="text" id="user-input" placeholder="Escribe tu pregunta..." required autocomplete="off" />
       <button type="submit">Enviar</button>
@@ -123,14 +156,35 @@
     const chatBox = document.getElementById('chat-box');
     const chatForm = document.getElementById('chat-form');
     const userInput = document.getElementById('user-input');
+    const clearBtn = document.getElementById('clear-chat-btn');
+
+    // Añade indicador de escribiendo
+    function setTyping(isTyping) {
+      let typingElem = document.getElementById('typing-indicator');
+      if (!typingElem && isTyping) {
+        typingElem = document.createElement('div');
+        typingElem.id = 'typing-indicator';
+        typingElem.textContent = '🤖 escribiendo...';
+        chatBox.appendChild(typingElem);
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+      if (typingElem) {
+        typingElem.style.display = isTyping ? 'block' : 'none';
+        if (!isTyping) typingElem.remove();
+      }
+    }
 
     chatForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const message = userInput.value.trim();
-      if (!message) return;
+      if (!message) {
+        alert('Por favor escribe algo antes de enviar.');
+        return;
+      }
       appendMessage('user', message);
       userInput.value = '';
 
+      setTyping(true);
       try {
         const response = await fetch('/chat', {
           method: 'POST',
@@ -142,6 +196,7 @@
       } catch {
         appendMessage('bot', 'Error: no se pudo conectar al servidor.');
       }
+      setTyping(false);
     });
 
     function appendMessage(sender, message) {
@@ -151,6 +206,10 @@
       chatBox.appendChild(msgDiv);
       chatBox.scrollTop = chatBox.scrollHeight;
     }
+
+    clearBtn.addEventListener('click', () => {
+      chatBox.innerHTML = `<div class="bot-msg">Hola 👋 Soy el Chatbot Ambiental Persol. Puedes preguntarme sobre normativas, capacitaciones o gestión ambiental.</div>`;
+    });
   </script>
 </body>
 </html>
