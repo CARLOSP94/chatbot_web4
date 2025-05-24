@@ -26,3 +26,4 @@ Werkzeug==3.1.3
 gunicorn
 flask-httpauth
 Flask-Session
+flask_sqlalchemy
