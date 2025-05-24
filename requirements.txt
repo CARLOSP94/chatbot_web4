@@ -28,3 +28,4 @@ flask-httpauth
 Flask-Session
 flask_sqlalchemy
 fpdf
+gTTS

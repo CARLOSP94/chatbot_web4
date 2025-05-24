@@ -6,10 +6,7 @@
   <title>Chatbot Ambiental Persol</title>
   <style>
     body { font-family: Arial, sans-serif; background: #f4f7f9; margin: 0; padding: 20px; }
-    #logo {
-      width: 180px;
-      margin-bottom: 20px;
-    }
+    #logo { width: 180px; margin-bottom: 20px; }
     #chat-box {
       border: 1px solid #ccc;
       height: 400px;
@@ -37,9 +34,7 @@
       display: inline-block;
       max-width: 70%;
     }
-    #chat-form {
-      display: flex;
-    }
+    #chat-form { display: flex; }
     #user-input {
       flex: 1;
       padding: 10px;
@@ -57,9 +52,7 @@
       font-size: 16px;
       cursor: pointer;
     }
-    #clear-chat-btn {
-      background-color: #dc3545;
-    }
+    #clear-chat-btn { background-color: #dc3545; }
     #buttons-container {
       margin-top: 15px;
     }
@@ -73,6 +66,18 @@
       background-color: #28a745;
       color: white;
     }
+    #avatar-container {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+    #avatar-container img {
+      border-radius: 50%;
+      width: 100px;
+      height: 100px;
+    }
+    #tts-btn {
+      background-color: #17a2b8;
+    }
   </style>
 </head>
 <body>
@@ -81,28 +86,43 @@
 
   <h1>Chatbot Ambiental Persol</h1>
 
+  <!-- Avatar -->
+  <div id="avatar-container">
+    <img src="{{ url_for('static', filename='avatar.png') }}" alt="Avatar del Asistente">
+    <p><strong>Asistente Ambiental</strong></p>
+  </div>
+
+  <!-- Chatbox -->
   <div id="chat-box">
     <div class="bot-msg">Hola 👋 Soy el Chatbot Ambiental Persol. Puedes preguntarme sobre normativas, capacitaciones o gestión ambiental.</div>
   </div>
 
+  <!-- Formulario -->
   <form id="chat-form">
     <input id="user-input" type="text" placeholder="Escribe tu pregunta aquí..." autocomplete="off" />
     <button id="send-btn" type="submit">Enviar</button>
     <button id="clear-chat-btn" type="button">Limpiar</button>
   </form>
 
-  <!-- Botones para historial y descarga -->
+  <!-- Botones adicionales -->
   <div id="buttons-container">
     <button id="btn-history" onclick="window.location.href='/ver_historial'">Historial</button>
     <button id="btn-download-txt" onclick="window.location.href='/descargar_historial/txt'">Descargar TXT</button>
     <button id="btn-download-pdf" onclick="window.location.href='/descargar_historial/pdf'">Descargar PDF</button>
+    <button id="tts-btn" onclick="reproducirAudio()">🔊 Reproducir Última Respuesta</button>
   </div>
 
+  <!-- Reproductor de audio -->
+  <audio id="respuesta-audio" controls style="display: none;"></audio>
+
+  <!-- Script -->
   <script>
     const chatBox = document.getElementById('chat-box');
     const chatForm = document.getElementById('chat-form');
     const userInput = document.getElementById('user-input');
     const clearBtn = document.getElementById('clear-chat-btn');
+    const audioElem = document.getElementById('respuesta-audio');
+    let ultimaRespuesta = '';
 
     function setTyping(isTyping) {
       let typingElem = document.getElementById('typing-indicator');
@@ -143,8 +163,25 @@
         });
         const data = await response.json();
         appendMessage('bot', data.response);
+        ultimaRespuesta = data.response;
+
+        // Cargar y reproducir el audio
+        const tts = await fetch('/tts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ texto: ultimaRespuesta })
+        });
+
+        if (tts.ok) {
+          const blob = await tts.blob();
+          const url = URL.createObjectURL(blob);
+          audioElem.src = url;
+          audioElem.style.display = 'block';
+          audioElem.play();
+        }
+
       } catch {
-        appendMessage('bot', 'Error: no se pudo conectar al servidor.');
+        appendMessage('bot', '❌ Error: no se pudo conectar al servidor.');
       }
       setTyping(false);
     });
@@ -152,7 +189,17 @@
     clearBtn.addEventListener('click', () => {
       chatBox.innerHTML = `<div class="bot-msg">Hola 👋 Soy el Chatbot Ambiental Persol. Puedes preguntarme sobre normativas, capacitaciones o gestión ambiental.</div>`;
       sessionStorage.clear();
+      ultimaRespuesta = '';
+      audioElem.style.display = 'none';
     });
+
+    function reproducirAudio() {
+      if (audioElem.src) {
+        audioElem.play();
+      } else {
+        alert("Primero envía una pregunta para generar audio.");
+      }
+    }
 
     async function loadHistory() {
       try {
@@ -171,6 +218,7 @@
   </script>
 </body>
 </html>
+
 
 
 

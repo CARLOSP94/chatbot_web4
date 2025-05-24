@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, render_template, session, send_file
 from flask_session import Session
 from flask_sqlalchemy import SQLAlchemy
 from fpdf import FPDF
+from gtts import gTTS
 import openai
 import os
 import io
@@ -100,6 +101,24 @@ def descargar_historial(tipo):
                          as_attachment=True, download_name='historial.pdf')
 
     return "Tipo no soportado", 400
+
+# Paso 3: Código en chatbot_web.py para usar TTS
+@app.route("/tts")
+def reproducir_ultima_respuesta():
+    historial = session.get("historial", [])
+    if not historial:
+        return "No hay historial disponible", 400
+
+    ultima_respuesta = historial[-1].get("bot", "")
+    if not ultima_respuesta:
+        return "No se encontró la última respuesta", 400
+
+    tts = gTTS(ultima_respuesta, lang='es')
+    audio_io = io.BytesIO()
+    tts.write_to_fp(audio_io)
+    audio_io.seek(0)
+
+    return send_file(audio_io, mimetype="audio/mpeg", as_attachment=False, download_name="respuesta.mp3")
 
 if __name__ == "__main__":
     app.run(debug=True)
