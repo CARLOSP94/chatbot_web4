@@ -1,11 +1,13 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, session
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_session import Session
 import openai
 import os
 import json
 from dotenv import load_dotenv
 
+# Cargar variables de entorno
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 assistant_id = os.getenv("ASSISTANT_ID")
@@ -13,7 +15,12 @@ assistant_id = os.getenv("ASSISTANT_ID")
 app = Flask(__name__)
 auth = HTTPBasicAuth()
 
-# Leer usuarios y contraseñas desde archivo JSON y hashear contraseñas
+# Configuración de sesión
+app.secret_key = 'clave-secreta-para-sesiones'
+app.config['SESSION_TYPE'] = 'filesystem'
+Session(app)
+
+# Cargar usuarios desde JSON y encriptar contraseñas
 with open('users.json', 'r') as f:
     users_plain = json.load(f)
 
@@ -45,7 +52,20 @@ def chat():
 
     messages = openai.beta.threads.messages.list(thread_id=thread.id)
     reply = messages.data[0].content[0].text.value
+
+    # Guardar conversación en la sesión del usuario
+    if 'history' not in session:
+        session['history'] = []
+    session['history'].append({'user': user_message, 'bot': reply})
+    session.modified = True
+
     return jsonify({'response': reply})
+
+@app.route('/history', methods=['GET'])
+@auth.login_required
+def get_history():
+    return jsonify(session.get('history', []))
 
 if __name__ == '__main__':
     app.run(debug=True)
+    
