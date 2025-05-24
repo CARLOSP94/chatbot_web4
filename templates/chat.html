@@ -6,6 +6,10 @@
   <title>Chatbot Ambiental Persol</title>
   <style>
     body { font-family: Arial, sans-serif; background: #f4f7f9; margin: 0; padding: 20px; }
+    #logo {
+      width: 180px;
+      margin-bottom: 20px;
+    }
     #chat-box {
       border: 1px solid #ccc;
       height: 400px;
@@ -56,10 +60,27 @@
     #clear-chat-btn {
       background-color: #dc3545;
     }
+    #buttons-container {
+      margin-top: 15px;
+    }
+    #buttons-container button {
+      margin-right: 10px;
+      padding: 8px 15px;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 5px;
+      border: none;
+      background-color: #28a745;
+      color: white;
+    }
   </style>
 </head>
 <body>
+  <!-- Logo -->
+  <img id="logo" src="{{ url_for('static', filename='logo.png') }}" alt="Logo Persol Ambiental" />
+
   <h1>Chatbot Ambiental Persol</h1>
+
   <div id="chat-box">
     <div class="bot-msg">Hola 👋 Soy el Chatbot Ambiental Persol. Puedes preguntarme sobre normativas, capacitaciones o gestión ambiental.</div>
   </div>
@@ -69,6 +90,13 @@
     <button id="send-btn" type="submit">Enviar</button>
     <button id="clear-chat-btn" type="button">Limpiar</button>
   </form>
+
+  <!-- Botones para historial y descarga -->
+  <div id="buttons-container">
+    <button id="btn-history" onclick="window.location.href='/ver_historial'">Historial</button>
+    <button id="btn-download-txt" onclick="window.location.href='/descargar_historial/txt'">Descargar TXT</button>
+    <button id="btn-download-pdf" onclick="window.location.href='/descargar_historial/pdf'">Descargar PDF</button>
+  </div>
 
   <script>
     const chatBox = document.getElementById('chat-box');
@@ -143,5 +171,6 @@
   </script>
 </body>
 </html>
+
 
 
