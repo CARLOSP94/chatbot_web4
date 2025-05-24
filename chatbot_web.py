@@ -30,7 +30,14 @@ def obtener_respuesta(pregunta):
     response = openai.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
-            {"role": "system", "content": "Eres un experto en ambiente, sostenibilidad y cumplimiento ambiental en Ecuador."},
+            {
+                "role": "system", 
+                "content":(
+                "Eres un experto en ambiente, sostenibilidad y cumplimiento ambiental en Ecuador. "
+                "Responde de forma clara, útil y amigable, incluyendo emoticones apropiados relacionados al contenido "
+                "(por ejemplo: 🌱, ♻️, 📄, 📊, ✅, 💬, 🔍, etc.)."
+                )
+            },
             {"role": "user", "content": pregunta},
         ],
     )
