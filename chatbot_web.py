@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template, session
+from flask import Flask, request, jsonify, render_template, session, send_file
 from flask_session import Session
 from flask_sqlalchemy import SQLAlchemy
 from fpdf import FPDF
@@ -25,16 +25,16 @@ class Historial(db.Model):
 with app.app_context():
     db.create_all()
 
-# Función para obtener respuesta del modelo de OpenAI
+# Función para obtener respuesta del modelo de OpenAI con la nueva API
 def obtener_respuesta(pregunta):
-    respuesta = openai.ChatCompletion.create(
+    response = openai.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": "Eres un experto en ambiente, sostenibilidad y cumplimiento ambiental en Ecuador."},
             {"role": "user", "content": pregunta},
-        ]
+        ],
     )
-    return respuesta.choices[0].message.content.strip()
+    return response.choices[0].message.content.strip()
 
 @app.route("/")
 def index():
