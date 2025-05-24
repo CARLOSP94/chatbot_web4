@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Chatbot Ambiental</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+
+    <div class="max-w-3xl mx-auto mt-10 p-6 bg-white rounded-2xl shadow-md">
+        <h1 class="text-3xl font-bold mb-6 text-center text-green-700">Chatbot Ambiental</h1>
+
+        <form method="POST" action="/" class="flex gap-2 mb-6">
+            <input type="text" name="user_input" placeholder="Escribe tu mensaje..."
+                   class="flex-1 border rounded-lg px-4 py-2 focus:outline-none focus:ring focus:border-green-400" required>
+            <button type="submit"
+                    class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">Enviar</button>
+        </form>
+
+        <div class="space-y-4 max-h-[400px] overflow-y-auto">
+            {% for msg in chat_history %}
+                <div class="{% if msg['role'] == 'user' %}text-right{% else %}text-left{% endif %}">
+                    <div class="inline-block px-4 py-2 rounded-xl {% if msg['role'] == 'user' %}
+                        bg-green-200 text-green-900{% else %}bg-gray-200 text-gray-800{% endif %}">
+                        <p><strong>{{ msg['role'] }}:</strong> {{ msg['content'] }}</p>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="mt-6 flex gap-3 justify-center flex-wrap">
+            <form action="/descargar_historial_txt" method="get">
+                <button class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">Descargar TXT</button>
+            </form>
+            <form action="/descargar_historial_pdf" method="get">
+                <button class="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600">Descargar PDF</button>
+            </form>
+            <form action="/ver_historial" method="get">
+                <button class="bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-800">Ver Historial Completo</button>
+            </form>
+        </div>
+    </div>
+
+</body>
+</html>

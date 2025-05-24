@@ -1,71 +1,87 @@
-from flask import Flask, render_template, request, jsonify, session
-from flask_httpauth import HTTPBasicAuth
-from werkzeug.security import generate_password_hash, check_password_hash
+from flask import Flask, request, jsonify, render_template, session, redirect, url_for, send_file
 from flask_session import Session
+from flask_sqlalchemy import SQLAlchemy
+from fpdf import FPDF
 import openai
+import io
 import os
-import json
-from dotenv import load_dotenv
-
-# Cargar variables de entorno
-load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
-assistant_id = os.getenv("ASSISTANT_ID")
 
 app = Flask(__name__)
-auth = HTTPBasicAuth()
-
-# Configuración de sesión
-app.secret_key = 'clave-secreta-para-sesiones'
+app.secret_key = "superclave"
 app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///historial.db'
 Session(app)
+db = SQLAlchemy(app)
 
-# Cargar usuarios desde JSON y encriptar contraseñas
-with open('users.json', 'r') as f:
-    users_plain = json.load(f)
+# Configura tu API key de OpenAI
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
-users = {user: generate_password_hash(pw) for user, pw in users_plain.items()}
+class Historial(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    usuario = db.Column(db.String(100))
+    mensaje = db.Column(db.Text)
 
-@auth.verify_password
-def verify_password(username, password):
-    if username in users and check_password_hash(users.get(username), password):
-        return username
+with app.app_context():
+    db.create_all()
 
-@app.route('/')
-@auth.login_required
+def obtener_respuesta(pregunta):
+    respuesta = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": "Eres un experto en ambiente, sostenibilidad y cumplimiento ambiental en Ecuador."},
+            {"role": "user", "content": pregunta},
+        ]
+    )
+    return respuesta.choices[0].message.content.strip()
+
+@app.route("/")
 def index():
-    return render_template('index.html')
+    historial = session.get("historial", [])
+    return render_template("chat.html", historial=historial)
 
-@app.route('/chat', methods=['POST'])
-@auth.login_required
+@app.route("/chat", methods=["POST"])
 def chat():
-    user_message = request.json['message']
+    pregunta = request.form["mensaje"]
+    respuesta = obtener_respuesta(pregunta)
 
-    thread = openai.beta.threads.create()
-    openai.beta.threads.messages.create(thread_id=thread.id, role="user", content=user_message)
-    run = openai.beta.threads.runs.create(assistant_id=assistant_id, thread_id=thread.id)
+    historial = session.get("historial", [])
+    historial.append("Usuario: " + pregunta)
+    historial.append("Chatbot: " + respuesta)
+    session["historial"] = historial
 
-    while True:
-        run_status = openai.beta.threads.runs.retrieve(thread_id=thread.id, run_id=run.id)
-        if run_status.status == "completed":
-            break
+    db.session.add(Historial(usuario="usuario_demo", mensaje=f"Usuario: {pregunta}"))
+    db.session.add(Historial(usuario="usuario_demo", mensaje=f"Chatbot: {respuesta}"))
+    db.session.commit()
 
-    messages = openai.beta.threads.messages.list(thread_id=thread.id)
-    reply = messages.data[0].content[0].text.value
+    return redirect(url_for("index"))
 
-    # Guardar conversación en la sesión del usuario
-    if 'history' not in session:
-        session['history'] = []
-    session['history'].append({'user': user_message, 'bot': reply})
-    session.modified = True
+@app.route("/descargar_historial/<tipo>")
+def descargar_historial(tipo):
+    historial = session.get("historial", [])
+    contenido = "\n".join(historial)
 
-    return jsonify({'response': reply})
+    if tipo == 'txt':
+        return send_file(io.BytesIO(contenido.encode()), mimetype='text/plain',
+                         as_attachment=True, download_name='historial.txt')
 
-@app.route('/history', methods=['GET'])
-@auth.login_required
-def get_history():
-    return jsonify(session.get('history', []))
+    elif tipo == 'pdf':
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font("Arial", size=12)
+        for linea in historial:
+            pdf.multi_cell(0, 10, linea)
+        buffer = io.BytesIO()
+        pdf.output(buffer)
+        buffer.seek(0)
+        return send_file(buffer, mimetype='application/pdf',
+                         as_attachment=True, download_name='historial.pdf')
 
-if __name__ == '__main__':
+    return "Tipo no soportado", 400
+
+@app.route('/ver_historial')
+def ver_historial():
+    historial = Historial.query.filter_by(usuario="usuario_demo").all()
+    return render_template("historial_completo.html", historial=historial)
+
+if __name__ == "__main__":
     app.run(debug=True)
-    
