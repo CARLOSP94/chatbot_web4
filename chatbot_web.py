@@ -2,10 +2,10 @@ from flask import Flask, request, jsonify, render_template, session, send_file
 from flask_session import Session
 from flask_sqlalchemy import SQLAlchemy
 from fpdf import FPDF
-from gtts import gTTS
 import openai
 import os
 import io
+from gtts import gTTS
 
 app = Flask(__name__)
 app.secret_key = "superclave"
@@ -14,7 +14,6 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///historial.db"
 Session(app)
 db = SQLAlchemy(app)
 
-# Configura tu API key de OpenAI desde variables de entorno
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Modelo de historial
@@ -26,19 +25,15 @@ class Historial(db.Model):
 with app.app_context():
     db.create_all()
 
-# Función para obtener respuesta del modelo de OpenAI con la nueva API
 def obtener_respuesta(pregunta):
     response = openai.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
-            {
-                "role": "system", 
-                "content":(
+            {"role": "system", "content": (
                 "Eres un experto en ambiente, sostenibilidad y cumplimiento ambiental en Ecuador. "
                 "Responde de forma clara, útil y amigable, incluyendo emoticones apropiados relacionados al contenido "
                 "(por ejemplo: 🌱, ♻️, 📄, 📊, ✅, 💬, 🔍, etc.)."
-                )
-            },
+            )},
             {"role": "user", "content": pregunta},
         ],
     )
@@ -57,17 +52,30 @@ def chat():
 
     respuesta = obtener_respuesta(pregunta)
 
-    # Guardar en sesión
     historial = session.get("historial", [])
     historial.append({"user": pregunta, "bot": respuesta})
     session["historial"] = historial
 
-    # Guardar en base de datos
     db.session.add(Historial(usuario="usuario_demo", mensaje=f"Usuario: {pregunta}"))
     db.session.add(Historial(usuario="usuario_demo", mensaje=f"Chatbot: {respuesta}"))
     db.session.commit()
 
+    session["ultima_respuesta"] = respuesta  # Guardar última respuesta para TTS
+
     return jsonify({"response": respuesta})
+
+@app.route("/tts", methods=["POST"])
+def tts():
+    texto = session.get("ultima_respuesta", "")
+    if not texto:
+        return "Primero envía una pregunta para generar audio.", 400
+
+    tts = gTTS(text=texto, lang="es")
+    mp3_fp = io.BytesIO()
+    tts.write_to_fp(mp3_fp)
+    mp3_fp.seek(0)
+
+    return send_file(mp3_fp, mimetype="audio/mpeg", as_attachment=False, download_name="respuesta.mp3")
 
 @app.route("/history")
 def history():
@@ -101,24 +109,6 @@ def descargar_historial(tipo):
                          as_attachment=True, download_name='historial.pdf')
 
     return "Tipo no soportado", 400
-
-# Paso 3: Código en chatbot_web.py para usar TTS
-@app.route("/tts")
-def reproducir_ultima_respuesta():
-    historial = session.get("historial", [])
-    if not historial:
-        return "No hay historial disponible", 400
-
-    ultima_respuesta = historial[-1].get("bot", "")
-    if not ultima_respuesta:
-        return "No se encontró la última respuesta", 400
-
-    tts = gTTS(ultima_respuesta, lang='es')
-    audio_io = io.BytesIO()
-    tts.write_to_fp(audio_io)
-    audio_io.seek(0)
-
-    return send_file(audio_io, mimetype="audio/mpeg", as_attachment=False, download_name="respuesta.mp3")
 
 if __name__ == "__main__":
     app.run(debug=True)

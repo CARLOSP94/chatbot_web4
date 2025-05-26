@@ -109,7 +109,7 @@
     <button id="btn-history" onclick="window.location.href='/ver_historial'">Historial</button>
     <button id="btn-download-txt" onclick="window.location.href='/descargar_historial/txt'">Descargar TXT</button>
     <button id="btn-download-pdf" onclick="window.location.href='/descargar_historial/pdf'">Descargar PDF</button>
-    <button id="tts-btn" onclick="reproducirAudio()">🔊 Reproducir Última Respuesta</button>
+    <button id="tts-btn">🔊 Reproducir Última Respuesta</button>
   </div>
 
   <!-- Reproductor de audio -->
@@ -121,6 +121,7 @@
     const chatForm = document.getElementById('chat-form');
     const userInput = document.getElementById('user-input');
     const clearBtn = document.getElementById('clear-chat-btn');
+    const ttsBtn = document.getElementById('tts-btn');
     const audioElem = document.getElementById('respuesta-audio');
     let ultimaRespuesta = '';
 
@@ -165,13 +166,7 @@
         appendMessage('bot', data.response);
         ultimaRespuesta = data.response;
 
-        // Cargar y reproducir el audio
-        const tts = await fetch('/tts', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ texto: ultimaRespuesta })
-        });
-
+        const tts = await fetch('/tts', { method: 'POST' });
         if (tts.ok) {
           const blob = await tts.blob();
           const url = URL.createObjectURL(blob);
@@ -180,8 +175,9 @@
           audioElem.play();
         }
 
-      } catch {
+      } catch (err) {
         appendMessage('bot', '❌ Error: no se pudo conectar al servidor.');
+        console.error(err);
       }
       setTyping(false);
     });
@@ -191,15 +187,27 @@
       sessionStorage.clear();
       ultimaRespuesta = '';
       audioElem.style.display = 'none';
+      audioElem.src = '';
     });
 
-    function reproducirAudio() {
-      if (audioElem.src) {
+    ttsBtn.addEventListener('click', async () => {
+      try {
+        const tts = await fetch('/tts', { method: 'POST' });
+        if (!tts.ok) {
+          const msg = await tts.text();
+          alert(msg);
+          return;
+        }
+        const blob = await tts.blob();
+        const url = URL.createObjectURL(blob);
+        audioElem.src = url;
+        audioElem.style.display = 'block';
         audioElem.play();
-      } else {
-        alert("Primero envía una pregunta para generar audio.");
+      } catch (err) {
+        alert("Ocurrió un error al reproducir el audio.");
+        console.error(err);
       }
-    }
+    });
 
     async function loadHistory() {
       try {
@@ -218,7 +226,3 @@
   </script>
 </body>
 </html>
-
-
-
-
