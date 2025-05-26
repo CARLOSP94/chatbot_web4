@@ -87,8 +87,8 @@ def ver_historial():
     historial = Historial.query.filter_by(usuario="usuario_demo").all()
     return render_template("historial_completo.html", historial=historial)
 
-@app.route("/descargar_historial/<tipo>")
-def descargar_historial(tipo):
+@app.route("/historial_completo/<tipo>")
+def historial_completo(tipo):
     historial = session.get("historial", [])
     contenido = "\n".join([f"Usuario: {h['user']}\nChatbot: {h['bot']}" for h in historial])
 
