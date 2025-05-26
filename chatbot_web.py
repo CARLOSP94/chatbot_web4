@@ -14,7 +14,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///historial.db"
 Session(app)
 db = SQLAlchemy(app)
 
-# Configura tu clave API de OpenAI desde variables de entorno
+# Asegúrate de tener esta variable de entorno configurada
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Modelo de historial
@@ -23,11 +23,10 @@ class Historial(db.Model):
     usuario = db.Column(db.String(100))
     mensaje = db.Column(db.Text)
 
-# Crea la base de datos si no existe
 with app.app_context():
     db.create_all()
 
-# Función para obtener respuesta del modelo
+# Función para obtener respuesta desde OpenAI
 def obtener_respuesta(pregunta):
     response = openai.chat.completions.create(
         model="gpt-3.5-turbo",
@@ -42,12 +41,10 @@ def obtener_respuesta(pregunta):
     )
     return response.choices[0].message.content.strip()
 
-# Página principal
 @app.route("/")
 def index():
     return render_template("chat.html")
 
-# Manejo de conversación
 @app.route("/chat", methods=["POST"])
 def chat():
     data = request.get_json()
@@ -65,11 +62,10 @@ def chat():
     db.session.add(Historial(usuario="usuario_demo", mensaje=f"Chatbot: {respuesta}"))
     db.session.commit()
 
-    session["ultima_respuesta"] = respuesta  # Para TTS
+    session["ultima_respuesta"] = respuesta  # Guardar última respuesta para TTS
 
     return jsonify({"response": respuesta})
 
-# TTS (text-to-speech)
 @app.route("/tts", methods=["POST"])
 def tts():
     texto = session.get("ultima_respuesta", "")
@@ -83,21 +79,18 @@ def tts():
 
     return send_file(mp3_fp, mimetype="audio/mpeg", as_attachment=False, download_name="respuesta.mp3")
 
-# Historial en formato JSON
 @app.route("/history")
 def history():
     historial = session.get("historial", [])
     return jsonify(historial)
 
-# Vista completa del historial desde la base de datos
 @app.route("/ver_historial")
 def ver_historial():
     historial = Historial.query.filter_by(usuario="usuario_demo").all()
     return render_template("historial_completo.html", historial=historial)
 
-# Descarga de historial en TXT o PDF
 @app.route("/descargar_historial/<tipo>")
-def historial_completo(tipo):
+def descargar_historial(tipo):
     historial = session.get("historial", [])
     contenido = "\n".join([f"Usuario: {h['user']}\nChatbot: {h['bot']}" for h in historial])
 
@@ -112,14 +105,14 @@ def historial_completo(tipo):
         for linea in contenido.split("\n"):
             pdf.multi_cell(0, 10, linea)
 
-        pdf_output = pdf.output(dest='S').encode('latin1')  # 💡 CORRECCIÓN AQUÍ
+        pdf_output = pdf.output(dest='S').encode('latin1')
         buffer = io.BytesIO(pdf_output)
         buffer.seek(0)
+
         return send_file(buffer, mimetype='application/pdf',
                          as_attachment=True, download_name='historial.pdf')
 
     return "Tipo no soportado", 400
 
-# Ejecutar la app
 if __name__ == "__main__":
     app.run(debug=True)
