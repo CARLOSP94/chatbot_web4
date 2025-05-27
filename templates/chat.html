@@ -1,228 +1,56 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Chatbot Ambiental Persol</title>
-  <style>
-    body { font-family: Arial, sans-serif; background: #f4f7f9; margin: 0; padding: 20px; }
-    #logo { width: 180px; margin-bottom: 20px; }
-    #chat-box {
-      border: 1px solid #ccc;
-      height: 400px;
-      overflow-y: auto;
-      background: white;
-      padding: 10px;
-      border-radius: 5px;
-      margin-bottom: 10px;
-    }
-    .user-msg {
-      text-align: right;
-      background-color: #dcf8c6;
-      margin: 5px 0;
-      padding: 8px 12px;
-      border-radius: 12px;
-      display: inline-block;
-      max-width: 70%;
-    }
-    .bot-msg {
-      text-align: left;
-      background-color: #eee;
-      margin: 5px 0;
-      padding: 8px 12px;
-      border-radius: 12px;
-      display: inline-block;
-      max-width: 70%;
-    }
-    #chat-form { display: flex; }
-    #user-input {
-      flex: 1;
-      padding: 10px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-      font-size: 16px;
-    }
-    #send-btn, #clear-chat-btn {
-      padding: 10px 20px;
-      margin-left: 5px;
-      border: none;
-      border-radius: 5px;
-      background-color: #0069d9;
-      color: white;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    #clear-chat-btn { background-color: #dc3545; }
-    #buttons-container {
-      margin-top: 15px;
-    }
-    #buttons-container button {
-      margin-right: 10px;
-      padding: 8px 15px;
-      font-size: 14px;
-      cursor: pointer;
-      border-radius: 5px;
-      border: none;
-      background-color: #28a745;
-      color: white;
-    }
-    #avatar-container {
-      text-align: center;
-      margin-bottom: 15px;
-    }
-    #avatar-container img {
-      border-radius: 50%;
-      width: 150px;
-      height: 150px;
-    }
-    #tts-btn {
-      background-color: #17a2b8;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>Chat Ambiental</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <!-- Logo -->
-  <img id="logo" src="{{ url_for('static', filename='logo1.png') }}" alt="Logo Persol Ambiental" />
+<body class="bg-green-50 font-sans">
 
-  <h1>Chatbot Ambiental Persol</h1>
+    <div class="max-w-xl mx-auto mt-10 p-6 bg-white rounded-xl shadow-lg">
+        <h1 class="text-2xl font-bold mb-4 text-green-800">Chat Ambiental Personalizado</h1>
 
-  <!-- Avatar -->
-  <div id="avatar-container">
-    <img src="{{ url_for('static', filename='avatar.png') }}" alt="Avatar del Asistente">
-    <p><strong>Asistente Ambiental</strong></p>
-  </div>
+        <form id="cliente-form" class="mb-4">
+            <label for="tipo" class="block mb-2 text-gray-700">Selecciona tu tipo de cliente:</label>
+            <select id="tipo" name="tipo" class="w-full p-2 border rounded" onchange="setTipoCliente()">
+                <option value="empresa">Empresa</option>
+                <option value="gad">GAD</option>
+                <option value="consultor">Consultor</option>
+                <option value="estudiante">Estudiante</option>
+            </select>
+        </form>
 
-  <!-- Chatbox -->
-  <div id="chat-box">
-    <div class="bot-msg">Hola 👋 Soy el Chatbot Ambiental Persol. Puedes preguntarme sobre normativas, capacitaciones o gestión ambiental.</div>
-  </div>
+        <div id="chat-box" class="mb-4 h-64 overflow-y-auto border p-3 bg-gray-50 rounded"></div>
 
-  <!-- Formulario -->
-  <form id="chat-form">
-    <input id="user-input" type="text" placeholder="Escribe tu pregunta aquí..." autocomplete="off" />
-    <button id="send-btn" type="submit">Enviar</button>
-    <button id="clear-chat-btn" type="button">Limpiar</button>
-  </form>
+        <input id="user-input" type="text" placeholder="Escribe tu pregunta..." class="w-full p-2 border rounded mb-2">
+        <button onclick="enviarMensaje()" class="bg-green-600 text-white px-4 py-2 rounded">Enviar</button>
+    </div>
 
-  <!-- Botones adicionales -->
-  <div id="buttons-container">
-    <button id="btn-history" onclick="window.location.href='/ver_historial'">Historial</button>
-    <button id="btn-download-txt" onclick="window.location.href='/descargar_historial/txt'">Descargar TXT</button>
-    <button id="btn-download-pdf" onclick="window.location.href='/descargar_historial/pdf'">Descargar PDF</button>
-    <button id="tts-btn">🔊 Reproducir Última Respuesta</button>
-  </div>
-
-  <!-- Reproductor de audio -->
-  <audio id="respuesta-audio" controls style="display: none;"></audio>
-
-  <!-- Script -->
-  <script>
-    const chatBox = document.getElementById('chat-box');
-    const chatForm = document.getElementById('chat-form');
-    const userInput = document.getElementById('user-input');
-    const clearBtn = document.getElementById('clear-chat-btn');
-    const ttsBtn = document.getElementById('tts-btn');
-    const audioElem = document.getElementById('respuesta-audio');
-    let ultimaRespuesta = '';
-
-    function setTyping(isTyping) {
-      let typingElem = document.getElementById('typing-indicator');
-      if (!typingElem && isTyping) {
-        typingElem = document.createElement('div');
-        typingElem.id = 'typing-indicator';
-        typingElem.textContent = '🤖 escribiendo...';
-        typingElem.style.fontStyle = 'italic';
-        chatBox.appendChild(typingElem);
-        chatBox.scrollTop = chatBox.scrollHeight;
-      }
-      if (typingElem) {
-        typingElem.style.display = isTyping ? 'block' : 'none';
-        if (!isTyping) typingElem.remove();
-      }
-    }
-
-    function appendMessage(sender, message) {
-      const msgDiv = document.createElement('div');
-      msgDiv.className = sender === 'user' ? 'user-msg' : 'bot-msg';
-      msgDiv.textContent = message;
-      chatBox.appendChild(msgDiv);
-      chatBox.scrollTop = chatBox.scrollHeight;
-    }
-
-    chatForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const message = userInput.value.trim();
-      if (!message) return;
-      appendMessage('user', message);
-      userInput.value = '';
-      setTyping(true);
-      try {
-        const response = await fetch('/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message })
-        });
-        const data = await response.json();
-        appendMessage('bot', data.response);
-        ultimaRespuesta = data.response;
-
-        const tts = await fetch('/tts', { method: 'POST' });
-        if (tts.ok) {
-          const blob = await tts.blob();
-          const url = URL.createObjectURL(blob);
-          audioElem.src = url;
-          audioElem.style.display = 'block';
-          audioElem.play();
+    <script>
+        function setTipoCliente() {
+            const tipo = document.getElementById("tipo").value;
+            fetch("/set_cliente", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ tipo: tipo })
+            });
         }
 
-      } catch (err) {
-        appendMessage('bot', '❌ Error: no se pudo conectar al servidor.');
-        console.error(err);
-      }
-      setTyping(false);
-    });
+        async function enviarMensaje() {
+            const input = document.getElementById("user-input").value;
+            if (!input) return;
 
-    clearBtn.addEventListener('click', () => {
-      chatBox.innerHTML = `<div class="bot-msg">Hola 👋 Soy el Chatbot Ambiental Persol. Puedes preguntarme sobre normativas, capacitaciones o gestión ambiental.</div>`;
-      sessionStorage.clear();
-      ultimaRespuesta = '';
-      audioElem.style.display = 'none';
-      audioElem.src = '';
-    });
+            const response = await fetch("/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: input })
+            });
 
-    ttsBtn.addEventListener('click', async () => {
-      try {
-        const tts = await fetch('/tts', { method: 'POST' });
-        if (!tts.ok) {
-          const msg = await tts.text();
-          alert(msg);
-          return;
+            const data = await response.json();
+            document.getElementById("chat-box").innerHTML += `<p><strong>Tú:</strong> ${input}</p>`;
+            document.getElementById("chat-box").innerHTML += `<p><strong>Chatbot:</strong> ${data.response}</p>`;
+            document.getElementById("user-input").value = "";
         }
-        const blob = await tts.blob();
-        const url = URL.createObjectURL(blob);
-        audioElem.src = url;
-        audioElem.style.display = 'block';
-        audioElem.play();
-      } catch (err) {
-        alert("Ocurrió un error al reproducir el audio.");
-        console.error(err);
-      }
-    });
-
-    async function loadHistory() {
-      try {
-        const res = await fetch('/history');
-        const history = await res.json();
-        history.forEach(pair => {
-          appendMessage('user', pair.user);
-          appendMessage('bot', pair.bot);
-        });
-      } catch (err) {
-        console.error('Error al cargar historial', err);
-      }
-    }
-
-    window.onload = loadHistory;
-  </script>
+    </script>
 </body>
 </html>
