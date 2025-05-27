@@ -12,10 +12,9 @@
 
         <div class="space-y-4 max-h-[600px] overflow-y-auto">
             {% for mensaje in historial %}
-                <div class="{% if mensaje.role == 'user' %}text-right{% else %}text-left{% endif %}">
-                    <div class="inline-block px-4 py-2 rounded-xl {% if mensaje.role == 'user' %}
-                        bg-green-200 text-green-900{% else %}bg-gray-200 text-gray-800{% endif %}">
-                        <p><strong>{{ mensaje.role }}:</strong> {{ mensaje.content }}</p>
+                <div class="text-left">
+                    <div class="inline-block px-4 py-2 rounded-xl bg-gray-200 text-gray-800">
+                        <p>{{ mensaje.mensaje }}</p>
                     </div>
                 </div>
             {% endfor %}
