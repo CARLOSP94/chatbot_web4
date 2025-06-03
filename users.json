@@ -1,8 +1,5 @@
 {
-  "admin": {
-    "password": "1234"
-  },
-  "usuario_demo": {
-    "password": "demo123"
-  }
+  "admin": "1234",
+  "cliente1": "clave1",
+  "cliente2": "clave2"
 }
