@@ -6,7 +6,7 @@ import openai
 import os
 import io
 from gtts import gTTS
-from werkzeug.security import generate_password_hash, check_password_hash
+import json
 
 app = Flask(__name__)
 app.secret_key = "superclave"
@@ -15,59 +15,60 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///historial.db"
 Session(app)
 db = SQLAlchemy(app)
 
-# Asegúrate de tener esta variable de entorno configurada
+# Configurar tu clave de OpenAI
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# Modelos de base de datos
+# Modelo para guardar historial en base de datos
 class Historial(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     usuario = db.Column(db.String(100))
     mensaje = db.Column(db.Text)
 
-class Usuario(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(100), unique=True, nullable=False)
-    password = db.Column(db.String(100), nullable=False)
-
 with app.app_context():
     db.create_all()
 
-@app.route("/crear_usuario_admin")
-def crear_usuario_admin():
-    username = "admin"
-    password = generate_password_hash("1234")
-    if not Usuario.query.filter_by(username=username).first():
-        nuevo = Usuario(username=username, password=password)
-        db.session.add(nuevo)
-        db.session.commit()
-        return "Usuario admin creado"
-    return "El usuario ya existe"
-
+# Ruta de login
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        username = request.form.get("username")
-        password = request.form.get("password")
-        user = Usuario.query.filter_by(username=username).first()
+        username = request.form["username"]
+        password = request.form["password"]
 
-        if user and check_password_hash(user.password, password):
-            session["usuario_logueado"] = username
+        try:
+            with open(r"C:\Users\HP\chatbot_web\users.json", "r") as f:
+                usuarios = json.load(f)
+        except FileNotFoundError:
+            return render_template("login.html", error="Archivo de usuarios no encontrado.")
+        except json.JSONDecodeError:
+            return render_template("login.html", error="Error al leer el archivo de usuarios.")
+
+        user_data = usuarios.get(username)
+
+        if user_data and user_data["password"] == password:
+            session["usuario"] = username
             return redirect("/")
         else:
-            return render_template("login.html", error="Credenciales incorrectas")
+            return render_template("login.html", error="Credenciales inválidas.")
+
     return render_template("login.html")
 
+# Ruta para cerrar sesión
 @app.route("/logout")
 def logout():
-    session.pop("usuario_logueado", None)
+    session.pop("usuario", None)
+    session.pop("tipo_cliente", None)
+    session.pop("historial", None)
     return redirect("/login")
 
 @app.route("/set_cliente", methods=["POST"])
 def set_cliente():
+    if "usuario" not in session:
+        return redirect("/login")
     tipo = request.json.get("tipo", "")
     session["tipo_cliente"] = tipo
     return jsonify({"message": "Tipo de cliente guardado"})
 
+# Lógica de respuesta con OpenAI
 def obtener_respuesta(pregunta):
     tipo = session.get("tipo_cliente", "empresa")
 
@@ -95,12 +96,15 @@ def obtener_respuesta(pregunta):
 
 @app.route("/")
 def index():
-    if "usuario_logueado" not in session:
+    if "usuario" not in session:
         return redirect("/login")
     return render_template("chat.html")
 
 @app.route("/chat", methods=["POST"])
 def chat():
+    if "usuario" not in session:
+        return redirect("/login")
+
     data = request.get_json()
     pregunta = data.get("message", "")
     if not pregunta:
@@ -112,15 +116,19 @@ def chat():
     historial.append({"user": pregunta, "bot": respuesta})
     session["historial"] = historial
 
-    db.session.add(Historial(usuario=session.get("usuario_logueado", "anonimo"), mensaje=f"Usuario: {pregunta}"))
-    db.session.add(Historial(usuario=session.get("usuario_logueado", "anonimo"), mensaje=f"Chatbot: {respuesta}"))
+    db.session.add(Historial(usuario=session["usuario"], mensaje=f"Usuario: {pregunta}"))
+    db.session.add(Historial(usuario=session["usuario"], mensaje=f"Chatbot: {respuesta}"))
     db.session.commit()
 
-    session["ultima_respuesta"] = respuesta
+    session["ultima_respuesta"] = respuesta  # Guardar última respuesta para TTS
+
     return jsonify({"response": respuesta})
 
 @app.route("/tts", methods=["POST"])
 def tts():
+    if "usuario" not in session:
+        return redirect("/login")
+
     texto = session.get("ultima_respuesta", "")
     if not texto:
         return "Primero envía una pregunta para generar audio.", 400
@@ -134,18 +142,23 @@ def tts():
 
 @app.route("/history")
 def history():
+    if "usuario" not in session:
+        return redirect("/login")
     historial = session.get("historial", [])
     return jsonify(historial)
 
 @app.route("/ver_historial")
 def ver_historial():
-    if "usuario_logueado" not in session:
+    if "usuario" not in session:
         return redirect("/login")
-    historial = Historial.query.filter_by(usuario=session["usuario_logueado"]).all()
+    historial = Historial.query.filter_by(usuario=session["usuario"]).all()
     return render_template("historial_completo.html", historial=historial)
 
 @app.route("/descargar_historial/<tipo>")
 def descargar_historial(tipo):
+    if "usuario" not in session:
+        return redirect("/login")
+
     historial = session.get("historial", [])
     contenido = "\n".join([f"Usuario: {h['user']}\nChatbot: {h['bot']}" for h in historial])
 
@@ -171,4 +184,5 @@ def descargar_historial(tipo):
 
 if __name__ == "__main__":
     app.run(debug=True)
+
 
