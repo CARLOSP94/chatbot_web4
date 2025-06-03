@@ -29,15 +29,15 @@ with app.app_context():
 USERS_FILE = r"C:\Users\HP\chatbot_web\users.json"
 
 def cargar_usuarios():
+    ruta = os.path.join(os.path.dirname(__file__), "users.json")
     try:
-        with open(USERS_FILE, "r", encoding="utf-8") as f:
+        with open(ruta, "r", encoding="utf-8") as f:
             return json.load(f)
-    except FileNotFoundError:
-        print("⚠️ Archivo de usuarios no encontrado.")
+    except Exception as e:
+        print("⚠️ Error al leer users.json:", e)
         return {}
-    except json.JSONDecodeError:
-        print("⚠️ Error al decodificar el archivo JSON.")
-        return {}
+    print("Usuarios disponibles:", usuarios)
+
 
 @app.route("/", methods=["GET", "POST"])
 def login():
