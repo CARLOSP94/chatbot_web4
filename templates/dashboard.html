@@ -1,71 +1,65 @@
+<!-- templates/dashboard.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Dashboard - Chatbot Ambiental Persol</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f7f9;
-      margin: 0;
-      padding: 20px;
-    }
-    h1 {
-      text-align: center;
-      color: #333;
-    }
-    .dashboard {
-      max-width: 600px;
-      margin: 30px auto;
-      background: white;
-      padding: 30px;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    .stat {
-      padding: 20px;
-      margin-bottom: 15px;
-      border-left: 6px solid #007bff;
-      background-color: #e9f2fe;
-      border-radius: 5px;
-    }
-    .stat h2 {
-      margin: 0 0 10px;
-      color: #007bff;
-    }
-    .stat p {
-      margin: 0;
-      font-size: 18px;
-      font-weight: bold;
-      color: #333;
-    }
-    a {
-      display: block;
-      margin-top: 20px;
-      text-align: center;
-      text-decoration: none;
-      color: #007bff;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>Dashboard - Persol Ambiental</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: #F4F6F7;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .header {
+            background-color: #3AA17E;
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            height: 50px;
+        }
+        .main {
+            padding: 2rem;
+        }
+        .card-custom {
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease-in-out;
+        }
+        .card-custom:hover {
+            transform: scale(1.02);
+        }
+    </style>
 </head>
 <body>
-  <h1>📊 Dashboard del Chatbot Ambiental</h1>
+    <header class="header">
+        <img src="{{ url_for('static', filename='img/logo_persol.png') }}" class="logo" alt="Logo Persol">
+        <h4>Bienvenido(a), {{ session.get('usuario') }}</h4>
+        <a href="/logout" class="btn btn-light">Cerrar sesión</a>
+    </header>
+    <main class="main container">
+        <h2 class="mb-4">Panel de Control</h2>
 
-  <div class="dashboard">
-    <div class="stat">
-      <h2>💬 Total de mensajes registrados</h2>
-      <p>{{ total_mensajes }}</p>
-    </div>
-    <div class="stat">
-      <h2>👤 Mensajes del usuario</h2>
-      <p>{{ total_usuario }}</p>
-    </div>
-    <div class="stat">
-      <h2>🤖 Respuestas del chatbot</h2>
-      <p>{{ total_bot }}</p>
-    </div>
-    <a href="/">⬅️ Volver al chat</a>
-  </div>
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card card-custom p-4">
+                    <h5>Chat Ambiental 🤖🌱</h5>
+                    <p>Haz preguntas sobre normativas, sostenibilidad, permisos, etc.</p>
+                    <a href="/" class="btn btn-persol text-white">Ir al Chat</a>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card card-custom p-4">
+                    <h5>Historial 🗂️</h5>
+                    <p>Consulta tus interacciones pasadas con el asistente.</p>
+                    <a href="/ver_historial" class="btn btn-persol text-white">Ver Historial</a>
+                </div>
+            </div>
+        </div>
+    </main>
 </body>
 </html>
+
