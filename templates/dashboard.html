@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard - Chatbot Ambiental Persol</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f7f9;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    .dashboard {
+      max-width: 600px;
+      margin: 30px auto;
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .stat {
+      padding: 20px;
+      margin-bottom: 15px;
+      border-left: 6px solid #007bff;
+      background-color: #e9f2fe;
+      border-radius: 5px;
+    }
+    .stat h2 {
+      margin: 0 0 10px;
+      color: #007bff;
+    }
+    .stat p {
+      margin: 0;
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
+    }
+    a {
+      display: block;
+      margin-top: 20px;
+      text-align: center;
+      text-decoration: none;
+      color: #007bff;
+    }
+  </style>
+</head>
+<body>
+  <h1>📊 Dashboard del Chatbot Ambiental</h1>
+
+  <div class="dashboard">
+    <div class="stat">
+      <h2>💬 Total de mensajes registrados</h2>
+      <p>{{ total_mensajes }}</p>
+    </div>
+    <div class="stat">
+      <h2>👤 Mensajes del usuario</h2>
+      <p>{{ total_usuario }}</p>
+    </div>
+    <div class="stat">
+      <h2>🤖 Respuestas del chatbot</h2>
+      <p>{{ total_bot }}</p>
+    </div>
+    <a href="/">⬅️ Volver al chat</a>
+  </div>
+</body>
+</html>
