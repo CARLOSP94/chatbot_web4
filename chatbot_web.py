@@ -14,7 +14,10 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///historial.db"
 Session(app)
 db = SQLAlchemy(app)
 
+# Configura tu API key de OpenAI desde variables de entorno
 openai.api_key = os.getenv("OPENAI_API_KEY")
+
+# Ruta absoluta del archivo users.json
 USERS_FILE = os.path.join(os.path.dirname(__file__), "users.json")
 
 # Modelo de historial
@@ -26,6 +29,8 @@ class Historial(db.Model):
 with app.app_context():
     db.create_all()
 
+# Función para obtener respuesta del modelo
+
 def obtener_respuesta(pregunta):
     response = openai.chat.completions.create(
         model="gpt-3.5-turbo",
@@ -33,13 +38,14 @@ def obtener_respuesta(pregunta):
             {"role": "system", "content": (
                 "Eres un experto en ambiente, sostenibilidad y cumplimiento ambiental en Ecuador. "
                 "Responde de forma clara, útil y amigable, incluyendo emoticones apropiados relacionados al contenido "
-                "(por ejemplo: 🌱, ♻️, 📄, 📊, ✅, 💬, 🔍, etc.)."
+                "(por ejemplo: 🌱, ♻️, 📄, 📈, ✅, 💬, 🔍, etc.)."
             )},
             {"role": "user", "content": pregunta},
         ],
     )
     return response.choices[0].message.content.strip()
 
+# Cargar usuarios desde JSON
 def cargar_usuarios():
     try:
         with open(USERS_FILE, "r", encoding="utf-8") as f:
@@ -68,14 +74,20 @@ def logout():
     session.clear()
     return redirect(url_for("login"))
 
-# DASHBOARD GENERAL
+# DASHBOARD CON MODULOS
 @app.route("/dashboard")
 def dashboard():
     if "usuario" not in session:
         return redirect(url_for("login"))
     return render_template("dashboard.html", usuario=session["usuario"])
 
-# MÓDULO CHATBOT (se accede desde el dashboard)
+# MODULO: CHATBOT
+@app.route("/chatbot")
+def chatbot():
+    if "usuario" not in session:
+        return redirect(url_for("login"))
+    return render_template("chat.html", usuario=session["usuario"])
+
 @app.route("/chat", methods=["POST"])
 def chat():
     if "usuario" not in session:
@@ -98,11 +110,12 @@ def chat():
 
     return jsonify({"response": respuesta})
 
-# HISTORIAL COMPLETO
+# VER HISTORIAL
 @app.route("/ver_historial")
 def ver_historial():
     if "usuario" not in session:
         return redirect(url_for("login"))
+
     historial = Historial.query.filter_by(usuario=session["usuario"]).all()
     return render_template("historial_completo.html", historial=historial)
 
@@ -135,3 +148,4 @@ def descargar_historial(tipo):
 
 if __name__ == "__main__":
     app.run(debug=True)
+
