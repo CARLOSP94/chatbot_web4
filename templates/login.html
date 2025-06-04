@@ -1,96 +1,17 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Ingreso - Persol Ambiental</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
-
-        body {
-            margin: 0;
-            font-family: 'Roboto', sans-serif;
-            background: linear-gradient(135deg, #4CAF50, #81C784);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-
-        .login-container {
-            background: white;
-            padding: 30px 40px;
-            border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            width: 360px;
-            text-align: center;
-        }
-
-        .login-container img {
-            width: 150px;
-            margin-bottom: 20px;
-        }
-
-        h2 {
-            margin-bottom: 25px;
-            color: #2E7D32;
-        }
-
-        input[type="text"],
-        input[type="password"] {
-            width: 100%;
-            padding: 12px 15px;
-            margin: 10px 0 20px 0;
-            border: 1.5px solid #4CAF50;
-            border-radius: 6px;
-            font-size: 16px;
-            transition: 0.3s ease;
-        }
-
-        input[type="text"]:focus,
-        input[type="password"]:focus {
-            border-color: #81C784;
-            outline: none;
-        }
-
-        button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 14px 0;
-            width: 100%;
-            border-radius: 6px;
-            font-size: 18px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        button:hover {
-            background-color: #388E3C;
-        }
-
-        .error-message {
-            color: #D32F2F;
-            margin-bottom: 15px;
-            font-weight: 600;
-        }
-    </style>
+    <meta charset="UTF-8">
+    <title>Iniciar Sesión</title>
 </head>
 <body>
-    <div class="login-container">
-        <!-- Cambia el src por la ruta correcta de tu logo -->
-        <img src="{{ url_for('static', filename='logo_persol.png') }}" alt="Logo Persol Ambiental" />
-        <h2>Iniciar Sesión</h2>
-
-        {% if error %}
-            <div class="error-message">{{ error }}</div>
-        {% endif %}
-
-        <form method="POST" action="{{ url_for('login') }}">
-            <input type="text" name="username" placeholder="Usuario" required />
-            <input type="password" name="password" placeholder="Contraseña" required />
-            <button type="submit">Entrar</button>
-        </form>
-    </div>
+    <h2>Login</h2>
+    {% if error %}<p style="color:red">{{ error }}</p>{% endif %}
+    <form method="post">
+        <input type="text" name="username" placeholder="Usuario"><br>
+        <input type="password" name="password" placeholder="Contraseña"><br>
+        <button type="submit">Ingresar</button>
+    </form>
 </body>
 </html>
+
