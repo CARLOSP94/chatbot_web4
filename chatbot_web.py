@@ -18,7 +18,8 @@ db = SQLAlchemy(app)
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Ruta absoluta del archivo users.json
-USERS_FILE = r"C:\Users\HP\chatbot_web\users.json"
+USERS_FILE = os.path.join(os.path.dirname(__file__), "users.json")
+
 
 # Modelo de historial
 class Historial(db.Model):
