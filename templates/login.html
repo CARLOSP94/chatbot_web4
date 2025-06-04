@@ -1,17 +1,83 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Iniciar Sesión</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Iniciar sesión - GreenAI Chatbot</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: #f1f3f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    .login-container {
+      max-width: 400px;
+      width: 100%;
+      padding: 30px;
+      background-color: white;
+      border-radius: 20px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .logo {
+      width: 120px;
+      display: block;
+      margin: 0 auto 20px;
+    }
+
+    .login-title {
+      text-align: center;
+      margin-bottom: 25px;
+      font-weight: 600;
+      color: #2b2d42;
+    }
+
+    .btn-primary {
+      width: 100%;
+      border-radius: 50px;
+    }
+
+    .form-control {
+      border-radius: 12px;
+    }
+
+    .error {
+      color: #d90429;
+      font-size: 0.95em;
+      text-align: center;
+      margin-bottom: 15px;
+    }
+  </style>
 </head>
 <body>
-    <h2>Login</h2>
-    {% if error %}<p style="color:red">{{ error }}</p>{% endif %}
-    <form method="post">
-        <input type="text" name="username" placeholder="Usuario"><br>
-        <input type="password" name="password" placeholder="Contraseña"><br>
-        <button type="submit">Ingresar</button>
+  <div class="login-container">
+    <!-- ✅ Cambia el logo aquí si tienes uno -->
+    <img src="{{ url_for('static', filename='logo1.png') }}" alt="Logo" class="logo">
+    
+    <h4 class="login-title">Inicia sesión en GreenAI 🌱</h4>
+
+    {% if error %}
+      <div class="error">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST" action="/">
+      <div class="mb-3">
+        <label for="username" class="form-label">Usuario</label>
+        <input type="text" class="form-control" id="username" name="username" required />
+      </div>
+
+      <div class="mb-3">
+        <label for="password" class="form-label">Contraseña</label>
+        <input type="password" class="form-control" id="password" name="password" required />
+      </div>
+
+      <button type="submit" class="btn btn-primary">Ingresar</button>
     </form>
+  </div>
 </body>
 </html>
 
