@@ -1,65 +1,87 @@
-<!-- templates/dashboard.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Dashboard - Persol Ambiental</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            background: #F4F6F7;
-            font-family: 'Segoe UI', sans-serif;
-        }
-        .header {
-            background-color: #3AA17E;
-            color: white;
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .logo {
-            height: 50px;
-        }
-        .main {
-            padding: 2rem;
-        }
-        .card-custom {
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            transition: transform 0.2s ease-in-out;
-        }
-        .card-custom:hover {
-            transform: scale(1.02);
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Ambiental Inteligente</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .sidebar {
+      height: 100vh;
+      background-color: #003f2d;
+      padding: 20px;
+      color: white;
+    }
+    .sidebar a {
+      color: white;
+      display: block;
+      margin: 15px 0;
+      text-decoration: none;
+    }
+    .sidebar a:hover {
+      text-decoration: underline;
+    }
+    .content {
+      padding: 20px;
+    }
+    .logo {
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
-    <header class="header">
-        <img src="{{ url_for('static', filename='img/logo_persol.png') }}" class="logo" alt="Logo Persol">
-        <h4>Bienvenido(a), {{ session.get('usuario') }}</h4>
-        <a href="/logout" class="btn btn-light">Cerrar sesión</a>
-    </header>
-    <main class="main container">
-        <h2 class="mb-4">Panel de Control</h2>
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-3 sidebar">
+      <div class="logo mb-4">
+        <i class="fas fa-leaf"></i> GreenAI
+      </div>
+      <a href="#chat"><i class="fas fa-comments"></i> Chat IA</a>
+      <a href="#base"><i class="fas fa-book"></i> Base de Conocimiento</a>
+      <a href="#stats"><i class="fas fa-chart-line"></i> Estadísticas</a>
+      <a href="#usuarios"><i class="fas fa-users"></i> Gestión de Usuarios</a>
+      <a href="#agenda"><i class="fas fa-calendar-alt"></i> Agenda Inteligente</a>
+      <a href="#tools"><i class="fas fa-tools"></i> Herramientas</a>
+      <a href="#alertas"><i class="fas fa-bell"></i> Notificaciones</a>
+      <a href="#cursos"><i class="fas fa-graduation-cap"></i> Capacitaciones</a>
+      <a href="#config"><i class="fas fa-cogs"></i> Configuración</a>
+    </div>
+    <div class="col-md-9 content">
+      <h2 id="chat">💬 Chat IA</h2>
+      <p>Interfaz de conversación con historial, exportación y categorización.</p>
 
-        <div class="row g-4">
-            <div class="col-md-6">
-                <div class="card card-custom p-4">
-                    <h5>Chat Ambiental 🤖🌱</h5>
-                    <p>Haz preguntas sobre normativas, sostenibilidad, permisos, etc.</p>
-                    <a href="/" class="btn btn-persol text-white">Ir al Chat</a>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card card-custom p-4">
-                    <h5>Historial 🗂️</h5>
-                    <p>Consulta tus interacciones pasadas con el asistente.</p>
-                    <a href="/ver_historial" class="btn btn-persol text-white">Ver Historial</a>
-                </div>
-            </div>
-        </div>
-    </main>
+      <h2 id="base">📚 Base de Conocimiento</h2>
+      <p>FAQs, normativa, instructivos y guías.</p>
+
+      <h2 id="stats">📈 Panel de Estadísticas</h2>
+      <p>Consultas respondidas, temas populares, tiempos, etc.</p>
+
+      <h2 id="usuarios">📑 Gestión de Usuarios</h2>
+      <p>Roles, acceso a consultas, agenda de asesorías.</p>
+
+      <h2 id="agenda">📆 Agenda Inteligente</h2>
+      <p>Solicitudes de reuniones, capacitaciones, eventos ambientales.</p>
+
+      <h2 id="tools">🛠️ Herramientas y Calculadoras</h2>
+      <p>Huella de carbono, simuladores, indicadores ambientales.</p>
+
+      <h2 id="alertas">🔔 Notificaciones y Alertas</h2>
+      <p>Alertas automáticas, cambios normativos, recordatorios.</p>
+
+      <h2 id="cursos">🎓 Capacitaciones y Recursos</h2>
+      <p>Videos, cursos, certificados.</p>
+
+      <h2 id="config">⚙️ Configuración</h2>
+      <p>Preferencias de usuario, idioma, modo claro/oscuro.</p>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-
