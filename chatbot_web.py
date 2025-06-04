@@ -1,4 +1,4 @@
-ffrom flask import Flask, request, jsonify, render_template, session, send_file, redirect, url_for
+from flask import Flask, request, jsonify, render_template, session, send_file, redirect, url_for
 from flask_session import Session
 from flask_sqlalchemy import SQLAlchemy
 from fpdf import FPDF
