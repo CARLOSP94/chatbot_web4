@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template, session, send_file, redirect, url_for
+ffrom flask import Flask, request, jsonify, render_template, session, send_file, redirect, url_for
 from flask_session import Session
 from flask_sqlalchemy import SQLAlchemy
 from fpdf import FPDF
@@ -14,12 +14,8 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///historial.db"
 Session(app)
 db = SQLAlchemy(app)
 
-# Configura tu API key de OpenAI desde variables de entorno
 openai.api_key = os.getenv("OPENAI_API_KEY")
-
-# Ruta absoluta del archivo users.json
 USERS_FILE = os.path.join(os.path.dirname(__file__), "users.json")
-
 
 # Modelo de historial
 class Historial(db.Model):
@@ -30,7 +26,6 @@ class Historial(db.Model):
 with app.app_context():
     db.create_all()
 
-# Función para obtener respuesta del modelo
 def obtener_respuesta(pregunta):
     response = openai.chat.completions.create(
         model="gpt-3.5-turbo",
@@ -45,7 +40,6 @@ def obtener_respuesta(pregunta):
     )
     return response.choices[0].message.content.strip()
 
-# Cargar usuarios desde JSON
 def cargar_usuarios():
     try:
         with open(USERS_FILE, "r", encoding="utf-8") as f:
@@ -64,7 +58,7 @@ def login():
 
         if usuario in usuarios and usuarios[usuario] == clave:
             session["usuario"] = usuario
-            return redirect(url_for("chatbot"))
+            return redirect(url_for("dashboard"))
         else:
             return render_template("login.html", error="Usuario o contraseña incorrectos.")
     return render_template("login.html")
@@ -74,13 +68,14 @@ def logout():
     session.clear()
     return redirect(url_for("login"))
 
-# CHATBOT
-@app.route("/chatbot")
-def chatbot():
+# DASHBOARD GENERAL
+@app.route("/dashboard")
+def dashboard():
     if "usuario" not in session:
         return redirect(url_for("login"))
-    return render_template("chat.html", usuario=session["usuario"])
+    return render_template("dashboard.html", usuario=session["usuario"])
 
+# MÓDULO CHATBOT (se accede desde el dashboard)
 @app.route("/chat", methods=["POST"])
 def chat():
     if "usuario" not in session:
@@ -103,12 +98,11 @@ def chat():
 
     return jsonify({"response": respuesta})
 
-# VER HISTORIAL
+# HISTORIAL COMPLETO
 @app.route("/ver_historial")
 def ver_historial():
     if "usuario" not in session:
         return redirect(url_for("login"))
-
     historial = Historial.query.filter_by(usuario=session["usuario"]).all()
     return render_template("historial_completo.html", historial=historial)
 
